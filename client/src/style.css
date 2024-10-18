@@ -1,0 +1,21 @@
+:root {
+  --clr-background: #4dc1cb;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100svh;
+
+  background-color: var(--clr-background);
+}
+
+canvas {
+  display: block;
+  max-width: 100%;
+}
