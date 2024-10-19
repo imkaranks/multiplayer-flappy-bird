@@ -7,7 +7,24 @@
     <title>Multiplayer Flappy Bird</title>
   </head>
   <body>
-    <canvas id="canvas"></canvas>
+    <div id="app">
+      <h1>Multiplayer Flappy Bird</h1>
+      <div id="room-setup">
+        <!-- <input type="text" id="room-name" placeholder="Room Name" /> -->
+        <button id="create-room">Create Room</button>
+        <input
+          type="text"
+          id="join-room-name"
+          placeholder="Room Name to Join"
+        />
+        <button id="join-room">Join Room</button>
+      </div>
+      <div id="game-start" class="hidden">
+        <h2>Room: <span id="current-room"></span></h2>
+        <button id="start-game">Start Game</button>
+      </div>
+      <canvas id="game-canvas" class="hidden"></canvas>
+    </div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>
