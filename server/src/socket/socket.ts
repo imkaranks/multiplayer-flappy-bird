@@ -24,7 +24,7 @@ export class SocketManager {
 
   private addEventListeners() {
     this.io.on("connection", (socket) => {
-      console.log("new player connected");
+      const username = socket.handshake.query.username as string;
       const globals: {
         roomId: string | null;
       } = { roomId: null };
@@ -41,7 +41,7 @@ export class SocketManager {
         if (game) {
           globals.roomId = roomId;
           socket.join(roomId);
-          game.addBird(socket.id);
+          game.addBird(socket.id, username);
           console.log("joined");
           socket.emit("room-created", roomId);
           this.io.to(roomId).emit("player-joined", socket.id);
@@ -64,10 +64,10 @@ export class SocketManager {
           globals.roomId = roomId;
 
           socket.join(roomId);
-          game.addBird(socket.id);
+          game.addBird(socket.id, username);
 
           socket.emit("join-room-success", roomId);
-          this.io.to(roomId).emit("player-joined", socket.id);
+          this.io.to(roomId).emit("player-joined", socket.id, username);
         } else {
           socket.emit("room-not-found");
         }

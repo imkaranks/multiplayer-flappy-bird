@@ -10,13 +10,18 @@ export interface IBird {
   gravity: number;
   width: number;
   height: number;
+  username: string;
+  score: number;
   alive: boolean;
+  dodgedObstacle: Set<number>;
   update: () => void;
   flap: () => void;
 }
 
 class Bird implements IBird {
+  score: number;
   alive: boolean;
+  dodgedObstacle: Set<number> = new Set<number>();
 
   constructor(
     public id: string,
@@ -26,10 +31,12 @@ class Bird implements IBird {
     public dy: number,
     public gravity: number,
     public width: number,
-    public height: number
+    public height: number,
+    public username: string
   ) {
     // super();
     this.alive = true;
+    this.score = 0;
   }
 
   // update(): void {

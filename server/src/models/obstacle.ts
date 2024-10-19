@@ -1,6 +1,7 @@
 import { GameObject } from "../game/game";
 
 export interface IObstacle {
+  groupId: number;
   x: number;
   y: number;
   dx: number;
@@ -16,6 +17,7 @@ class Obstacle implements IObstacle {
   toDelete: boolean;
 
   constructor(
+    public groupId: number,
     public x: number,
     public y: number,
     public dx: number,

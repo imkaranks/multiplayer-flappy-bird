@@ -9,6 +9,8 @@ import "./style.css";
     "https://www.purgomalum.com/service/containsprofanity?text=";
   let username: string | null = localStorage.getItem("flappy_bird_username");
   let roomName: string;
+  let score = 0;
+  const scores: { [key: string]: number } = {};
   let base: Base | null = null;
   const birds = new Map<string, Bird>();
   const obstaclePool: Obstacle[] = [];
@@ -36,6 +38,7 @@ import "./style.css";
   ) as HTMLSpanElement;
   const roomSetupDiv = document.getElementById("room-setup") as HTMLDivElement;
   const gameStartDiv = document.getElementById("game-start") as HTMLDivElement;
+  const scoreList = document.getElementById("scoreList") as HTMLUListElement;
   const gameCanvas = document.getElementById(
     "game-canvas"
   ) as HTMLCanvasElement;
@@ -61,7 +64,7 @@ import "./style.css";
           .then((res) => {
             if (res === "false") {
               username = incomingUsername;
-              localStorage.setItem("flappy_bird_username", incomingUsername);
+              // localStorage.setItem("flappy_bird_username", incomingUsername);
             } else {
               throw new Error("Please refrain from using profane username");
             }
@@ -107,6 +110,38 @@ import "./style.css";
     }
     return obstacle;
   }
+
+  // Function to render scores
+  const renderScores = () => {
+    scoreList.innerHTML = ""; // Clear existing scores
+
+    // Convert scores object to an array and sort it in descending order
+    const sortedScores = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+
+    if (!sortedScores.length) return;
+
+    // Find the highest score
+    const highestScore = sortedScores[0][1];
+
+    // Populate the score list
+    sortedScores.forEach(([player, score]) => {
+      const listItem = document.createElement("li");
+      listItem.textContent = `${player}: ${score}`;
+
+      // Check if this player has the highest score
+      if (score === highestScore) {
+        listItem.classList.add("highest");
+        const crownIcon = document.createElement("img");
+        crownIcon.src = "https://img.icons8.com/ios-filled/50/FFD700/crown.png"; // Crown icon URL
+        crownIcon.alt = "Crown";
+        crownIcon.classList.add("crown");
+        crownIcon.style.display = "inline"; // Show crown icon
+        listItem.appendChild(crownIcon);
+      }
+
+      scoreList.appendChild(listItem);
+    });
+  };
 
   window.onload = async () => {
     try {
@@ -154,11 +189,11 @@ import "./style.css";
         toggleGameStart(false);
       });
 
-      socket.on("player-joined", (socketId: string) => {
+      socket.on("player-joined", (socketId: string, username: string) => {
         // if (socket.id !== socketId) return;
         const isMe = socket.id === socketId;
 
-        const newBird = new Bird(ctx, socketId, 0, 0, 0, 2, 24, isMe);
+        const newBird = new Bird(ctx, socketId, 0, 0, 0, 2, 24, username, isMe);
 
         birds.set(socketId, newBird);
 
@@ -237,7 +272,7 @@ import "./style.css";
       socket.on("game-state", (state) => {
         if (!ctx) return;
 
-        // console.log(state);
+        renderScores();
 
         ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
 
@@ -258,6 +293,8 @@ import "./style.css";
         for (const bird of aliveBirds) {
           const existingBird = birds.get(bird.id);
 
+          scores[bird.username] = bird.score;
+
           if (existingBird && existingBird.id === socket.id) {
             myBirdState = bird;
           } else {
@@ -270,11 +307,12 @@ import "./style.css";
                 bird.dx,
                 bird.dy,
                 bird.height,
+                bird.username,
                 false
               );
               birds.set(bird.id, newBird);
             } else {
-              existingBird.update(bird.x, bird.y);
+              existingBird.update(bird.x, bird.y, bird.score);
             }
           }
         }
@@ -282,7 +320,8 @@ import "./style.css";
         const myBird = birds.get(socket.id!);
 
         if (myBirdState && myBird) {
-          myBird.update(myBirdState.x, myBirdState.y);
+          score = myBirdState.score;
+          myBird.update(myBirdState.x, myBirdState.y, myBirdState.score);
         }
 
         obstacles.forEach((obstacleData) => {
@@ -299,6 +338,17 @@ import "./style.css";
         if (base !== null) {
           base.update();
         }
+
+        ctx.font = "24px Arial"; // Set the desired font size and family
+        ctx.textAlign = "center"; // Center the text
+        ctx.fillStyle = "black"; // Set the text color
+
+        // Calculate the position for the score text
+        const scoreX = gameCanvas.width / 2; // Centered horizontally
+        const scoreY = 30;
+
+        // Draw the score text
+        ctx.fillText(`Score: ${score}`, scoreX, scoreY);
       });
 
       document.onclick = () => {

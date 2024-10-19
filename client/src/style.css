@@ -9,9 +9,6 @@
 }
 
 body {
-  min-height: 100vh;
-  min-height: 100svh;
-
   background-color: var(--clr-background);
 }
 
@@ -21,10 +18,19 @@ canvas {
 }
 
 body {
+  height: 100vh;
+  height: 100svh;
   font-family: Arial, sans-serif;
   text-align: center;
   background-color: #f0f0f0;
   padding: 20px;
+  display: grid;
+  gap: 1rem;
+
+  @media (min-width: 768px) {
+    align-items: flex-start;
+    grid-template-columns: 1fr min(100%, 320px);
+  }
 }
 
 #app {
@@ -32,8 +38,8 @@ body {
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  max-width: 600px;
-  margin: auto;
+  /* max-width: 600px;
+  margin: auto; */
 }
 
 input {
@@ -63,5 +69,42 @@ button:hover {
 
 canvas {
   margin-top: 20px;
+  margin: auto;
   border: 1px solid #ccc;
+}
+
+.scoreboard {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.score-title {
+  text-align: center;
+}
+
+.scoreboard ul {
+  list-style-type: none;
+  padding: 0;
+  overflow-y: auto;
+}
+
+li {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.crown {
+  width: 20px;
+  height: 20px;
+  margin-left: 10px;
+  display: none;
+}
+
+.highest {
+  font-weight: bold;
+  color: gold;
 }

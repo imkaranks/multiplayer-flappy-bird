@@ -10,7 +10,6 @@
     <div id="app">
       <h1>Multiplayer Flappy Bird</h1>
       <div id="room-setup">
-        <!-- <input type="text" id="room-name" placeholder="Room Name" /> -->
         <button id="create-room">Create Room</button>
         <input
           type="text"
@@ -23,7 +22,13 @@
         <h2>Room: <span id="current-room"></span></h2>
         <button id="start-game">Start Game</button>
       </div>
+
       <canvas id="game-canvas" class="hidden"></canvas>
+    </div>
+
+    <div class="scoreboard">
+      <h3 class="score-title">Player Scores</h3>
+      <ul id="scoreList"></ul>
     </div>
 
     <script type="module" src="/src/main.ts"></script>

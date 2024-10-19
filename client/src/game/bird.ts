@@ -8,6 +8,7 @@ export default class Bird {
   private spriteTicker: number = 0;
   private toBeDeleted: boolean = false;
   public width: number;
+  public score: number = 0;
 
   public image: HTMLImageElement;
 
@@ -21,6 +22,7 @@ export default class Bird {
     public dy: number,
 
     public height: number,
+    public username: string,
     public isMe: boolean
   ) {
     this.width = height * (Bird.SPRITE_WIDTH / Bird.SPRITE_HEIGHT);
@@ -31,6 +33,20 @@ export default class Bird {
 
   draw(): void {
     if (!this.ctx) return;
+
+    if (!this.isMe) {
+      this.ctx.globalAlpha = 0.5;
+    }
+
+    this.ctx.font = "14px Arial";
+    this.ctx.textAlign = "center";
+    this.ctx.fillStyle = "black";
+
+    // Calculate the text position
+    const textX = this.x + this.width / 2; // Centered above the image
+    const textY = this.y - 10;
+
+    this.ctx.fillText(this.username, textX, textY);
 
     this.ctx.drawImage(
       this.image,
@@ -43,13 +59,16 @@ export default class Bird {
       this.width,
       this.height
     );
+
+    this.ctx.globalAlpha = 1;
   }
 
-  update(x: number, y: number): void {
+  update(x: number, y: number, score: number): void {
     if (!this.ctx) return;
 
     this.x = x;
     this.y = y;
+    this.score = score;
 
     if (this.spriteTicker >= 3) {
       this.sx = (this.sx + 1) % Bird.SPRITE_FRAMES;

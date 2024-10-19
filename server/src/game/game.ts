@@ -38,7 +38,7 @@ class Game {
     this.getAliveBirds = this.getAliveBirds.bind(this);
   }
 
-  addBird(id: string) {
+  addBird(id: string, username: string) {
     const width = 34;
     const height = 24;
 
@@ -50,7 +50,8 @@ class Game {
       2,
       0.5,
       width,
-      height
+      height,
+      username
     );
 
     this.birds.set(id, bird);
@@ -93,6 +94,8 @@ class Game {
   }
 
   private createObstacles() {
+    let count = 0;
+
     clearInterval(this.obstacleInterval);
     // const gap = 100;
     const gap = 0.3; // Gap between top and bottom pipes
@@ -104,6 +107,7 @@ class Game {
       const bottomPipeHeight = (1 - height - gap) * canvasHeight; // Scale height by canvasHeight
 
       const topPipe = new Obstacle(
+        count,
         canvasWidth, // Start position (x) for the top pipe
         0, // Start position (y) for the top pipe
         2, // dx
@@ -114,6 +118,7 @@ class Game {
       );
 
       const bottomPipe = new Obstacle(
+        count,
         canvasWidth, // Start position (x) for the bottom pipe
         topPipeHeight + gap * canvasHeight, // Start position (y) for the bottom pipe
         2, // dx
@@ -124,6 +129,7 @@ class Game {
       );
 
       this.obstacles.push(topPipe, bottomPipe);
+      count++;
     }, 2000);
   }
 
@@ -177,9 +183,28 @@ class Game {
     );
   }
 
+  updateScores = () => {
+    // Increment scores for birds that successfully passed obstacles
+    for (const [id, bird] of this.birds.entries()) {
+      if (!bird.alive) continue;
+
+      this.obstacles.forEach((obstacle) => {
+        if (
+          obstacle.x + obstacle.width < bird.x &&
+          !bird.dodgedObstacle.has(obstacle.groupId)
+        ) {
+          bird.score++; // Increment score
+          bird.dodgedObstacle.add(obstacle.groupId); // Mark this obstacle as dodged
+        }
+      });
+    }
+  };
+
   update(io: Server): void {
     // Check for collisions
     this.detectCollisions(io);
+
+    this.updateScores();
 
     // Update birds
     for (const [id, bird] of this.birds) {
@@ -209,7 +234,6 @@ class Game {
       birds: this.getAliveBirds(),
       obstacles: this.obstacles,
     });
-    // console.log("haha");
   }
 
   gameLoop(io: Server, roomId: string): void {
