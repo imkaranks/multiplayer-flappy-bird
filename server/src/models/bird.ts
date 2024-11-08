@@ -1,5 +1,5 @@
 import { GameObject } from "../game/game";
-import { canvasHeight } from "../globals";
+import { canvasHeight, canvasWidth } from "../globals";
 
 export interface IBird {
   id: string;
@@ -16,6 +16,7 @@ export interface IBird {
   dodgedObstacle: Set<number>;
   update: () => void;
   flap: () => void;
+  resetState: () => void;
 }
 
 class Bird implements IBird {
@@ -75,8 +76,16 @@ class Bird implements IBird {
     }
   }
 
-  flap() {
+  flap(): void {
     this.dy = -5;
+  }
+
+  resetState(): void {
+    this.x = canvasWidth / 2 - this.width / 2;
+    this.y = canvasHeight / 2 - this.height / 2;
+    this.alive = true;
+    this.score = 0;
+    this.dodgedObstacle.clear();
   }
 }
 

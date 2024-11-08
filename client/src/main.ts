@@ -25,6 +25,9 @@ import "./style.css";
   const startGameButton = document.getElementById(
     "start-game"
   ) as HTMLButtonElement;
+  const restartGameButton = document.getElementById(
+    "restart-game"
+  ) as HTMLButtonElement;
 
   // const roomNameInput = document.getElementById(
   //   "room-name"
@@ -64,7 +67,7 @@ import "./style.css";
           .then((res) => {
             if (res === "false") {
               username = incomingUsername;
-              // localStorage.setItem("flappy_bird_username", incomingUsername);
+              localStorage.setItem("flappy_bird_username", incomingUsername);
             } else {
               throw new Error("Please refrain from using profane username");
             }
@@ -123,13 +126,21 @@ import "./style.css";
     // Find the highest score
     const highestScore = sortedScores[0][1];
 
+    // Get all players with the highest score
+    const topPlayers = sortedScores
+      .filter(([player, score]) => score === highestScore)
+      .map(([player]) => player);
+
+    // Sort the top players alphabetically
+    topPlayers.sort();
+
     // Populate the score list
     sortedScores.forEach(([player, score]) => {
       const listItem = document.createElement("li");
       listItem.textContent = `${player}: ${score}`;
 
       // Check if this player has the highest score
-      if (score === highestScore) {
+      if (player === topPlayers[0]) {
         listItem.classList.add("highest");
         const crownIcon = document.createElement("img");
         crownIcon.src = "https://img.icons8.com/ios-filled/50/FFD700/crown.png"; // Crown icon URL
@@ -153,9 +164,22 @@ import "./style.css";
         },
       });
 
+      // Handle successful connection
+      socket.on("connect", () => {
+        console.log("Successfully connected!");
+      });
+
+      // Handle connection errors
+      socket.on("connect_error", (err: Error) => {
+        console.error("Connection error:", err.message);
+      });
+
       createRoomButton.addEventListener("click", createRoom);
       joinRoomButton.addEventListener("click", joinRoom);
       startGameButton.addEventListener("click", startGame);
+      restartGameButton.addEventListener("click", () =>
+        socket.emit("restart-game")
+      );
 
       function createRoom(): void {
         socket.emit("create-room");
@@ -202,6 +226,26 @@ import "./style.css";
         toggleGameStart(true);
       });
 
+      socket.on("online-players", (incomingBirds: Bird[]) => {
+        incomingBirds.forEach((bird) => {
+          const isMe = socket.id === bird.id;
+
+          const newBird = new Bird(
+            ctx,
+            bird.id,
+            0,
+            0,
+            0,
+            2,
+            24,
+            bird.username,
+            isMe
+          );
+
+          birds.set(bird.id, newBird);
+        });
+      });
+
       socket.on("bird-collision", (socketId: string) => {
         birds.delete(socketId);
       });
@@ -218,6 +262,19 @@ import "./style.css";
         // gameStarted = true;
         toggleGameStart(false);
         renderCanvas();
+
+        if (!restartGameButton.classList.contains("hidden")) {
+          restartGameButton.classList.add("hidden");
+        }
+      });
+
+      socket.on("game-over", () => {
+        if (restartGameButton.classList.contains("hidden")) {
+          restartGameButton.classList.remove("hidden");
+        }
+
+        birds.clear();
+        obstaclePool.splice(0, obstaclePool.length);
       });
 
       function drawBackground(

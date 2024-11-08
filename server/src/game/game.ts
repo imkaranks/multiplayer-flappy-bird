@@ -27,6 +27,7 @@ class Game {
   private frameDuration = Math.floor(1000 / this.fps);
   private canvasWidth = 560;
   private canvasHeight = 400;
+  private roomId: string | undefined;
   playerCount = 0;
   // roomId: string | undefined;
   didStarted: boolean = false;
@@ -150,6 +151,10 @@ class Game {
 
           if (!this.getAliveBirds().length) {
             this.stop();
+
+            if (this.roomId) {
+              io.to(this.roomId).emit("game-over");
+            }
           }
           break; // No need to check other obstacles
         }
@@ -226,6 +231,10 @@ class Game {
     // check for game over state after updating
     if (!this.getAliveBirds().length) {
       this.stop();
+
+      if (this.roomId) {
+        io.to(this.roomId).emit("game-over");
+      }
     }
   }
 
@@ -250,6 +259,7 @@ class Game {
 
     this.obstacles = [];
     this.didStarted = true;
+    this.roomId = roomId;
     this.gameLoop(io, roomId);
     this.createObstacles();
   }
@@ -260,6 +270,17 @@ class Game {
     this.didStarted = false;
     clearInterval(this.interval);
     clearInterval(this.obstacleInterval);
+  }
+
+  restart(io: Server, roomId: string): void {
+    this.stop();
+
+    // Reset game state variables
+    this.obstacles = [];
+    this.didStarted = false;
+    this.birds.forEach((bird) => bird.resetState());
+
+    this.start(io, roomId);
   }
 }
 

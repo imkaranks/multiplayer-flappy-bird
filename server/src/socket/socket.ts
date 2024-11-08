@@ -23,6 +23,20 @@ export class SocketManager {
   }
 
   private addEventListeners() {
+    // Middleware to check for username in the handshake query
+    this.io.use((socket, next) => {
+      const username = socket.handshake.query.username;
+
+      if (!username) {
+        const err = new Error("Username is required") as Error & { data?: any };
+        err.data = { content: "Please provide a username" };
+        return next(err); // Reject the connection
+      }
+
+      // If username exists, proceed to connect
+      next();
+    });
+
     this.io.on("connection", (socket) => {
       const username = socket.handshake.query.username as string;
       const globals: {
@@ -103,6 +117,18 @@ export class SocketManager {
         }
       });
 
+      socket.on("restart-game", () => {
+        const rooms = Array.from(socket.rooms);
+        const roomId = rooms[1];
+        const game = this.games.get(roomId);
+
+        if (game) {
+          this.sendOnlineBirds(socket, roomId);
+          this.io.to(roomId).emit("game-started", socket.id);
+          game.restart(this.io, roomId);
+        }
+      });
+
       socket.on("disconnect", () => {
         const rooms = Array.from(socket.rooms);
         const roomId = rooms.length > 1 ? rooms[1] : globals.roomId;
@@ -140,6 +166,11 @@ export class SocketManager {
 
         this.sendOnlineBirds(socket, roomId);
       });
+    });
+
+    // Error handling
+    this.io.on("error", (error) => {
+      console.error("Socket error:", error.message);
     });
   }
 
